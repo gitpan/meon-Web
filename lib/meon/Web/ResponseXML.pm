@@ -3,23 +3,29 @@ package meon::Web::ResponseXML;
 use strict;
 use warnings;
 
+use meon::Web::Util;
 use XML::LibXML;
 use Scalar::Util 'blessed';
 use Moose;
 use 5.010;
 
-has 'dom' => (is=>'rw',isa=>'XML::LibXML::Document',lazy_build=>1);
-has '_xml_libxml' => (is=>'rw',isa=>'XML::LibXML',lazy=>1,default=>sub { XML::LibXML->new });
+has 'dom' => (is=>'rw',isa=>'XML::LibXML::Document',lazy_build=>1,trigger=>sub{ $_[0]->clear_xml_libxml; $_[0]->clear_elements; });
+has '_xml_libxml' => (is=>'rw',isa=>'XML::LibXML',lazy=>1,default=>sub { XML::LibXML->new },clearer=>'clear_xml_libxml');
 has 'elements' => (
     is      => 'rw',
     isa     => 'ArrayRef[Object]',
-    default => sub{[]},
+    lazy_build => 1,
+    clearer => 'clear_elements',
 	traits  => ['Array'],
 	handles => {
 		'push_element' => 'push',
 		'elements_all' => 'elements',
 	},
 );
+
+sub _build_elements {
+    return [];
+}
 
 sub _build_dom {
     my ($self) = @_;
@@ -37,6 +43,16 @@ sub create_element {
     my ($self, $name, $id) = @_;
 
     my $element = $self->dom->createElementNS('http://web.meon.eu/',$name);
+    $element->setAttribute('id'=>$id)
+        if defined $id;
+
+    return $element;
+}
+
+sub create_xhtml_element {
+    my ($self, $name, $id) = @_;
+
+    my $element = $self->dom->createElementNS('http://www.w3.org/1999/xhtml',$name);
     $element->setAttribute('id'=>$id)
         if defined $id;
 
@@ -111,9 +127,18 @@ sub add_xhtml_form {
 
     my $forms = $self->get_or_create_element('forms', 'forms');
 
-    $forms->appendChild(
-        $self->parse_xhtml_string($xml)
-    );
+    my $form = $self->parse_xhtml_string($xml);
+
+    # add input like id-s to controll group divs
+    my $xpc = meon::Web::Util->xpc;
+    my (@inputs) = $xpc->findnodes(q{//x:input[@id!='']|//x:select[@id!='']|//x:textarea[@id!='']},$form);
+    foreach my $input (@inputs) {
+        my $control_group = $input->parentNode->parentNode;
+        next if $control_group->getAttribute('class') ne 'control-group';
+        my $control_id = 'control-group-'.$input->getAttribute('id');
+        $control_group->setAttribute(id => $control_id);
+    }
+    $forms->appendChild($form);
 
     return $self;
 }
@@ -125,7 +150,6 @@ sub add_xhtml_link {
         unless blessed($link) && $link->isa('eusahub::Data::Link');
 
     my $forms = $self->get_or_create_element('links', 'links');
-
     $forms->appendChild($link->as_xml);
 
     return $self;

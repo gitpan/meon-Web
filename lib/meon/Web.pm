@@ -4,8 +4,12 @@ use namespace::autoclean;
 
 use Path::Class 'file', 'dir';
 use meon::Web::SPc;
+use meon::Web::Util;
+
+use Catalyst::Plugin::Authentication::Store::UserXML 0.02;
 
 use Catalyst::Runtime 5.80;
+use Catalyst::Plugin::Session 0.37;
 use Catalyst qw(
     ConfigLoader
     Authentication
@@ -17,8 +21,9 @@ use Catalyst qw(
     Unicode::Encoding
 );
 extends 'Catalyst';
+use Catalyst::View::XSLT 0.10;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 __PACKAGE__->config(
     name => 'meon_web',
@@ -27,7 +32,8 @@ __PACKAGE__->config(
     'root' => dir(meon::Web::SPc->datadir, 'meon', 'web', 'www'),
     'authentication' => {
         'userxml' => {
-            'folder' => dir(meon::Web::SPc->sharedstatedir, 'meon-web', 'global-members'),
+            'folder'           => dir(meon::Web::SPc->sharedstatedir, 'meon-web', 'global-members'),
+            'user_folder_file' => 'index.xml',
         }
     },
     'Plugin::Authentication' => {
@@ -49,6 +55,11 @@ __PACKAGE__->config(
         ],
         TEMPLATE_EXTENSION => '.xsl',
     },
+    'View::JSON' => {
+        allow_callback  => 1,
+        callback_param  => 'cb',
+        expose_stash    => 'json',
+    },
 );
 
 __PACKAGE__->setup();
@@ -58,19 +69,67 @@ sub static_include_path {
 
     my $uri      = $c->req->uri;
     my $hostname = $uri->host;
-    my $hostname_folder = meon::Web::Config->hostname_to_folder($hostname);
+    my $hostname_dir = meon::Web::Config->hostname_to_folder($hostname);
 
     $c->detach('/status_not_found', ['no such domain '.$hostname.' configured'])
-        unless $hostname_folder;
+        unless $hostname_dir;
 
-    return [ dir(meon::Web::SPc->srvdir, 'www', 'meon-web', $hostname_folder, 'www') ];
+    return [ dir(meon::Web::SPc->srvdir, 'www', 'meon-web', $hostname_dir, 'www') ];
 }
 
-sub xpc {
-    my $xpc = XML::LibXML::XPathContext->new;
-    $xpc->registerNs('x', 'http://www.w3.org/1999/xhtml');
-    $xpc->registerNs('w', 'http://web.meon.eu/');
-    return $xpc;
+sub json_reply {
+    my ( $c, $json_data ) = @_;
+
+    $c->res->header('X-Ajax-Controller',1);
+    $c->stash->{json} = $json_data;
+    $c->detach('View::JSON');
+}
+
+sub member {
+    my $c = shift;
+
+    my $members_folder = $c->default_auth_store->folder;
+    return meon::Web::Member->new(
+        members_folder => $members_folder,
+        username       => $c->user->username,
+    );
+}
+
+sub traverse_uri {
+    my ($c,$path) = @_;
+
+    $path = meon::Web::Util->path_fixup($path);
+
+    # redirect absolute urls with hostname
+    if ($path =~ m{^https?://}) {
+        return URI->new($path);
+    }
+
+    # redirect absolute urls
+    if ($path =~ m{^/}) {
+        my $new_uri = $c->req->base->clone;
+        $new_uri->path($path);
+        return $new_uri;
+    }
+
+    my $new_uri = $c->req->uri->clone;
+    my @segments = $new_uri->path_segments;
+    pop(@segments) if length($path); # allow keeping current uri with path set to ''
+    $new_uri->path_segments(
+        @segments,
+        URI->new($path)->path_segments
+    );
+    return $new_uri;
+}
+
+sub format_dt {
+    my ($c, $datetime) = @_;
+
+    my $dt = $datetime->clone;
+
+    # FIXME $c->user preferred timezone + format
+    $dt->set_time_zone('Europe/Vienna');
+    return $dt->strftime('%d.%m.%Y %H:%M:%S');
 }
 
 1;
@@ -79,7 +138,7 @@ __END__
 
 =head1 NAME
 
-meon::Web - XML+XSLT file based CMS
+meon::Web - XML+XSLT file based "CMS"
 
 =head1 SYNOPSIS
 
@@ -158,5 +217,9 @@ by the Free Software Foundation; or the Artistic License.
 
 See http://dev.perl.org/licenses/ for more information.
 
+=head1 srv/www/meon-web/bootstrap/
+
+Are examples from L<https://github.com/twbs/bootstrap>, check there for
+license and copyright.
 
 =cut

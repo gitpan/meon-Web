@@ -1,5 +1,5 @@
 ---
-abstract: 'XML+XSLT file based CMS'
+abstract: "XML+XSLT file based \"CMS\""
 author:
   - 'Jozef Kutej <jkutej@cpan.org>'
 build_requires:
@@ -9,7 +9,7 @@ configure_requires:
   Module::Build: 0.3607
   Module::Build::SysPath: 0.13
 dynamic_config: 1
-generated_by: 'Module::Build version 0.38, CPAN::Meta::Converter version 2.112621'
+generated_by: 'Module::Build version 0.4202, CPAN::Meta::Converter version 2.132830'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -18,57 +18,113 @@ name: meon-Web
 provides:
   meon::Web:
     file: lib/meon/Web.pm
-    version: 0.01
+    version: 0.02
   meon::Web::Config:
     file: lib/meon/Web/Config.pm
-    version: 0
+  meon::Web::Controller::API:
+    file: lib/meon/Web/Controller/API.pm
   meon::Web::Controller::Members:
     file: lib/meon/Web/Controller/Members.pm
-    version: 0
   meon::Web::Controller::Root:
     file: lib/meon/Web/Controller/Root.pm
-    version: 0
+  meon::Web::Form::Delete:
+    file: lib/meon/Web/Form/Delete.pm
+  meon::Web::Form::ExtendMembership:
+    file: lib/meon/Web/Form/ExtendMembership.pm
+  meon::Web::Form::FileDelete:
+    file: lib/meon/Web/Form/FileDelete.pm
+  meon::Web::Form::FileUpload:
+    file: lib/meon/Web/Form/FileUpload.pm
+  meon::Web::Form::ImageUpload:
+    file: lib/meon/Web/Form/ImageUpload.pm
   meon::Web::Form::Login:
     file: lib/meon/Web/Form/Login.pm
-    version: 0
-  meon::Web::Form::Process::SendEmail:
-    file: lib/meon/Web/Form/Process/SendEmail.pm
-    version: 0
+  meon::Web::Form::MemberRegistration:
+    file: lib/meon/Web/Form/MemberRegistration.pm
+  meon::Web::Form::MemberUpdate:
+    file: lib/meon/Web/Form/MemberUpdate.pm
+  meon::Web::Form::PasswordChange:
+    file: lib/meon/Web/Form/PasswordChange.pm
+  meon::Web::Form::PasswordReset:
+    file: lib/meon/Web/Form/PasswordReset.pm
+  meon::Web::Form::SendEmail:
+    file: lib/meon/Web/Form/SendEmail.pm
+  meon::Web::Form::TimelineUpdate:
+    file: lib/meon/Web/Form/TimelineUpdate.pm
+  meon::Web::Form::TrainingCourse:
+    file: lib/meon/Web/Form/TrainingCourse.pm
+  meon::Web::Member:
+    file: lib/meon/Web/Member.pm
   meon::Web::Model::ResponseXML:
     file: lib/meon/Web/Model/ResponseXML.pm
-    version: 0
   meon::Web::ResponseXML:
     file: lib/meon/Web/ResponseXML.pm
-    version: 0
+  meon::Web::Role::Form:
+    file: lib/meon/Web/Role/Form.pm
   meon::Web::SPc:
     file: lib/meon/Web/SPc.pm
     version: 0.01
+  meon::Web::TimelineAggregate:
+    file: lib/meon/Web/TimelineAggregate.pm
+  meon::Web::TimelineEntry:
+    file: lib/meon/Web/TimelineEntry.pm
+  meon::Web::Util:
+    file: lib/meon/Web/Util.pm
+  meon::Web::View::JSON:
+    file: lib/meon/Web/View/JSON.pm
   meon::Web::View::XSLT:
     file: lib/meon/Web/View/XSLT.pm
-    version: 0
+  meon::Web::XML2Comment:
+    file: lib/meon/Web/XML2Comment.pm
+  meon::Web::env:
+    file: lib/meon/Web/env.pm
 requires:
   Catalyst::Action::RenderView: 0
   Catalyst::Model::Factory::PerRequest: 0
   Catalyst::Plugin::Authentication: 0
-  Catalyst::Plugin::Authentication::Store::UserXML: 0
+  Catalyst::Plugin::Authentication::Store::UserXML: 0.02
   Catalyst::Plugin::ConfigLoader: 0
+  Catalyst::Plugin::Session: 0.37
   Catalyst::Plugin::Session::State::Cookie: 0
   Catalyst::Plugin::Session::Store::File: 0
+  Catalyst::Plugin::SmartURI: 0
   Catalyst::Plugin::Static::Simple: 0
+  Catalyst::Plugin::Unicode::Encoding: 0
   Catalyst::Runtime: 5.90007
-  Catalyst::View::XSLT: 0
+  Catalyst::View::XSLT: 0.10
+  Class::Load: 0
+  Config::INI::Reader: 0
+  Data::Dumper: 0
+  Data::Header::Fields: 0
+  Data::UUID::LibUUID: 0
+  Data::asXML: 0
+  DateTime::Format::HTTP: 0
+  DateTime::Format::Strptime: 0
+  Digest::SHA: 0
   Email::MIME: 0
   Email::Sender::Simple: 0
+  Email::Valid: 0
+  File::Copy: 0
+  File::Find::Age: 0
   File::MimeInfo: 0
+  Getopt::Long: 0
   HTML::FormHandler::Moose: 0
   IO::Any: 0
+  Imager: 0
+  JSON::XS: 0
   List::MoreUtils: 0
   Moose: 0
-  Path::Class: 0
+  MooseX::StrictConstructor: 0
+  MooseX::Types::Path::Class: 0
+  Path::Class: 0.04
+  Pod::Usage: 0
+  Run::Env: 0
+  Scalar::Util: 0
+  Text::Unidecode: 0
   URI::Escape: 0
   XML::LibXML: 1.70
   namespace::autoclean: 0
   perl: 5.010
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.01
+version: 0.02

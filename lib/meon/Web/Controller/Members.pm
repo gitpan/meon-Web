@@ -19,19 +19,17 @@ sub base : Chained('/') PathPart('members') CaptureArgs(0) {
         unless $c->user_exists;
 }
 
-sub download : Chained('base') PathPart('download') {
-    my ( $self, $c, @filename ) = @_;
+sub default : Chained('base') PathPart('') {
+    my ( $self, $c, @args ) = @_;
 
-    my $download_folder = $c->stash->{hostname_folder}->subdir('members', 'download');
-    my $file = $download_folder->file(@filename)->absolute->resolve;
-    $c->detach('/status_forbidden', [join('/', @filename)])
-        unless $download_folder->contains($file);
-    $c->detach('/status_not_found', [join('/', @filename)])
-        unless -e $file;
+    # private area, restricted to user him self
+    if (($args[0] eq 'profile') && ($args[2] eq 'private')) {
+        my $username = $args[1] // '';
+        $c->detach('/status_forbidden', [])
+            unless $username eq $c->user->username;
+    }
 
-    my $mime_type = mimetype($filename[-1]);
-    $c->res->content_type($mime_type);
-    $c->res->body($file->open('r'));
+    $c->forward('/resolve_xml', []);
 }
 
 __PACKAGE__->meta->make_immutable;
